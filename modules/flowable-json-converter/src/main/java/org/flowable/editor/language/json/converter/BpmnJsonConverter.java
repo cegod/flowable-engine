@@ -497,6 +497,23 @@ public class BpmnJsonConverter implements EditorJsonConstants, StencilConstants,
                 process.setName(pool.getName());
                 process.setExecutable(pool.isExecutable());
                 process.setEnableEagerExecutionTreeFetching(JsonConverterUtil.getPropertyValueAsBoolean(PROPERTY_IS_EAGER_EXECUTION_FETCHING, shapeNode, false));
+
+                BpmnJsonConverterUtil.convertJsonToMessages(modelNode, bpmnModel);
+                BpmnJsonConverterUtil.convertJsonToListeners(modelNode, process);
+                JsonNode eventListenersNode = BpmnJsonConverterUtil.getProperty(PROPERTY_EVENT_LISTENERS, modelNode);
+                if (eventListenersNode != null) {
+                    eventListenersNode = BpmnJsonConverterUtil.validateIfNodeIsTextual(eventListenersNode);
+                    BpmnJsonConverterUtil.parseEventListeners(eventListenersNode.get(PROPERTY_EVENTLISTENER_VALUE), process);
+                }
+
+                JsonNode processDataPropertiesNode = modelNode.get(EDITOR_SHAPE_PROPERTIES).get(PROPERTY_DATA_PROPERTIES);
+
+                if (processDataPropertiesNode != null) {
+                    List<ValuedDataObject> dataObjects = BpmnJsonConverterUtil.convertJsonToDataProperties(processDataPropertiesNode, process);
+                    process.setDataObjects(dataObjects);
+                    process.getFlowElements().addAll(dataObjects);
+                }
+
                 bpmnModel.addProcess(process);
 
                 ArrayNode laneArrayNode = (ArrayNode) shapeNode.get(EDITOR_CHILD_SHAPES);
@@ -540,7 +557,7 @@ public class BpmnJsonConverter implements EditorJsonConstants, StencilConstants,
                         Signal signal = new Signal();
                         signal.setId(signalId);
                         signal.setName(signalName);
-                        signal.setScope((signalScope.toLowerCase().equals("processinstance")) ? Signal.SCOPE_PROCESS_INSTANCE : Signal.SCOPE_GLOBAL);
+                        signal.setScope(signalScope.toLowerCase().equals("processinstance") ? Signal.SCOPE_PROCESS_INSTANCE : Signal.SCOPE_GLOBAL);
                         bpmnModel.addSignal(signal);
                     }
                 }

@@ -12,12 +12,37 @@
  */
 package org.flowable.cmmn.converter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.xml.XMLConstants;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.stax.StAXSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.cmmn.converter.exception.XMLException;
 import org.flowable.cmmn.converter.export.CaseExport;
 import org.flowable.cmmn.converter.export.CmmnDIExport;
 import org.flowable.cmmn.converter.export.DefinitionsRootExport;
 import org.flowable.cmmn.converter.export.StageExport;
+import org.flowable.cmmn.converter.util.PlanItemDependencyUtil;
 import org.flowable.cmmn.model.Association;
 import org.flowable.cmmn.model.BaseElement;
 import org.flowable.cmmn.model.Case;
@@ -43,28 +68,6 @@ import org.flowable.common.engine.api.io.InputStreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
-
-import javax.xml.XMLConstants;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.stax.StAXSource;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Joram Barrez
@@ -95,7 +98,6 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
         addElementConverter(new RequiredRuleXmlConverter());
         addElementConverter(new RepetitionRuleXmlConverter());
         addElementConverter(new ManualActivationRuleXmlConverter());
-        addElementConverter(new CompletionNeutralRuleXmlConverter());
         addElementConverter(new SentryXmlConverter());
         addElementConverter(new EntryCriterionXmlConverter());
         addElementConverter(new ExitCriterionXmlConverter());
@@ -106,6 +108,7 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
         addElementConverter(new ProcessTaskXmlConverter());
         addElementConverter(new DecisionXmlConverter());
         addElementConverter(new DecisionTaskXmlConverter());
+        addElementConverter(new GenericEventListenerXmlConverter());
         addElementConverter(new TimerEventListenerXmlConverter());
         addElementConverter(new UserEventListenerXmlConverter());
         addElementConverter(new PlanItemStartTriggerXmlConverter());
@@ -114,16 +117,13 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
         addElementConverter(new CmmnDiBoundsXmlConverter());
         addElementConverter(new CmmnDiWaypointXmlConverter());
 
-        addElementConverter(new FieldExtensionXmlConverter());
-        addElementConverter(new FlowableHttpResponseHandlerXmlConverter());
-        addElementConverter(new FlowableHttpRequestHandlerXmlConverter());
-        addElementConverter(new ParameterMappingXMLConverter());
-
         addTextConverter(new StandardEventXmlConverter());
         addTextConverter(new ProcessRefExpressionXmlConverter());
         addTextConverter(new DecisionRefExpressionXmlConverter());
         addTextConverter(new ConditionXmlConverter());
         addTextConverter(new TimerExpressionXmlConverter());
+        
+        addElementConverter(new ExtensionElementsXMLConverter());
     }
 
     public static void addElementConverter(BaseCmmnXmlConverter converter) {
@@ -214,7 +214,7 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
                         elementConverters.get(xtr.getLocalName()).elementEnd(xtr, conversionHelper);
                     }
 
-                } else if (xtr.isCharacters() && currentXmlElement != null) {
+                } else if ((xtr.isCharacters() || xtr.getEventType() == XMLStreamReader.CDATA) && currentXmlElement != null) {
                     if (textConverters.containsKey(currentXmlElement)) {
                         textConverters.get(currentXmlElement).convertToCmmnModel(xtr, conversionHelper);
                     }
@@ -294,7 +294,7 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
 
                 Stage planModel = caseModel.getPlanModel();
 
-                StageExport.getInstance().writePlanItemDefinition(planModel, xtw);
+                StageExport.getInstance().writePlanItemDefinition(model, planModel, xtw);
 
                 // end case element
                 xtw.writeEndElement();
@@ -344,6 +344,28 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
                 caze.getAllCaseElements().put(caseElement.getId(), caseElement);
             }
         }
+
+        // Now everything has an id, the sentry onParts are filled to have source PlanItems,
+        // this is used later when determining the dependency information
+        for (SentryOnPart sentryOnPart : conversionHelper.getSentryOnParts()) {
+            Optional<PlanItem> planItem = conversionHelper.findPlanItem(sentryOnPart.getSourceRef());
+            if (planItem.isPresent()) {
+                sentryOnPart.setSource(planItem.get());
+            }
+        }
+
+        // Now all sentries have a source, the plan items can be enriched with dependency information
+        for (PlanItem planItem : conversionHelper.getPlanItems()) {
+
+            // Dependencies
+            planItem.getEntryDependencies().addAll(PlanItemDependencyUtil.getEntryDependencies(planItem));
+            planItem.getExitDependencies().addAll(PlanItemDependencyUtil.getExitDependencies(planItem));
+
+            // Dependents
+            planItem.getEntryDependencies().forEach(entryDependency -> entryDependency.getDependentPlanItems().add(planItem));
+            planItem.getExitDependencies().forEach(exitDependency -> exitDependency.getDependentPlanItems().add(planItem));
+        }
+
 
         // set DI elements
         for (CmmnDiShape diShape : conversionHelper.getDiShapes()) {
@@ -434,7 +456,9 @@ public class CmmnXmlConverter implements CmmnXmlConstants {
             }
 
             if (planItemDefinition instanceof PlanFragment) {
-                processPlanFragment(cmmnModel, (PlanFragment) planItemDefinition);
+                PlanFragment planItemPlanFragment = (PlanFragment) planItemDefinition;
+                planItemPlanFragment.setPlanItem(planItem);
+                processPlanFragment(cmmnModel, planItemPlanFragment);
 
             } else if (planItemDefinition instanceof ProcessTask) {
                 ProcessTask processTask = (ProcessTask) planItemDefinition;

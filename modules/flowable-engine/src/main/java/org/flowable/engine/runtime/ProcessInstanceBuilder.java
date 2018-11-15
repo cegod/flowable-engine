@@ -66,9 +66,21 @@ public interface ProcessInstanceBuilder {
     ProcessInstanceBuilder callbackType(String callbackType);
 
     /**
-     * Set the tenantId of process instance
+     * Set the tenantId of to lookup the process definition
      **/
     ProcessInstanceBuilder tenantId(String tenantId);
+    
+    /**
+     * Indicator to override the tenant id of the process definition with the provided value.
+     * The tenantId to lookup the process definition should still be provided if needed.
+     */
+    ProcessInstanceBuilder overrideProcessDefinitionTenantId(String tenantId);
+    
+    /**
+     * When starting a process instance from the CMMN engine process task, the process instance id needs to be known beforehand
+     * to store entity links and callback references before the process instance is started.
+     */
+    ProcessInstanceBuilder predefineProcessInstanceId(String processInstanceId);
 
     /**
      * Sets the process variables
@@ -91,6 +103,11 @@ public interface ProcessInstanceBuilder {
     ProcessInstanceBuilder transientVariable(String variableName, Object value);
 
     /**
+     * Use default tenant as a fallback in the case when process definition was not found by key and tenant id
+     */
+    ProcessInstanceBuilder fallbackToDefaultTenant();
+
+    /**
      * Start the process instance
      * 
      * @throws FlowableIllegalArgumentException
@@ -99,5 +116,15 @@ public interface ProcessInstanceBuilder {
      *             when no process definition is deployed with the given processDefinitionKey or processDefinitionId
      **/
     ProcessInstance start();
+
+    /**
+     * Start the process instance asynchronously
+     *
+     * @throws FlowableIllegalArgumentException
+     *             if processDefinitionKey and processDefinitionId are null
+     * @throws FlowableObjectNotFoundException
+     *             when no process definition is deployed with the given processDefinitionKey or processDefinitionId
+     **/
+    ProcessInstance startAsync();
 
 }

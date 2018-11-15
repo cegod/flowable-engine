@@ -29,7 +29,6 @@ import org.flowable.common.engine.api.FlowableException;
 import org.flowable.common.engine.impl.AbstractEngineConfiguration;
 import org.flowable.common.engine.impl.AbstractEngineConfigurator;
 import org.flowable.common.engine.impl.EngineDeployer;
-import org.flowable.common.engine.impl.HasTaskIdGeneratorEngineConfiguration;
 import org.flowable.common.engine.impl.callback.RuntimeInstanceStateChangeCallback;
 import org.flowable.common.engine.impl.interceptor.EngineConfigurationConstants;
 import org.flowable.common.engine.impl.persistence.entity.Entity;
@@ -51,7 +50,7 @@ public class CmmnEngineConfigurator extends AbstractEngineConfigurator {
 
     @Override
     protected List<EngineDeployer> getCustomDeployers() {
-        return Collections.<EngineDeployer>singletonList(new CmmnDeployer());
+        return Collections.singletonList(new CmmnDeployer());
     }
 
     @Override
@@ -88,7 +87,7 @@ public class CmmnEngineConfigurator extends AbstractEngineConfigurator {
             
         }
 
-        cmmnEngineConfiguration.setExecuteServiceDbSchemaManagers(false);
+        cmmnEngineConfiguration.setExecuteServiceSchemaManagers(false);
 
         initCmmnEngine();
 
@@ -131,7 +130,7 @@ public class CmmnEngineConfigurator extends AbstractEngineConfigurator {
     }
 
     protected void initProcessInstanceService(ProcessEngineConfigurationImpl processEngineConfiguration) {
-        cmmnEngineConfiguration.setProcessInstanceService(new DefaultProcessInstanceService(processEngineConfiguration.getRuntimeService()));
+        cmmnEngineConfiguration.setProcessInstanceService(new DefaultProcessInstanceService(processEngineConfiguration));
     }
 
     protected void initProcessInstanceStateChangedCallbacks(ProcessEngineConfigurationImpl processEngineConfiguration) {
@@ -161,21 +160,6 @@ public class CmmnEngineConfigurator extends AbstractEngineConfigurator {
         }
 
         return cmmnEngineConfiguration.buildCmmnEngine();
-    }
-
-    @Override
-    protected void initIdGenerator(AbstractEngineConfiguration engineConfiguration, AbstractEngineConfiguration targetEngineConfiguration) {
-        super.initIdGenerator(engineConfiguration, targetEngineConfiguration);
-        if (targetEngineConfiguration instanceof HasTaskIdGeneratorEngineConfiguration) {
-            HasTaskIdGeneratorEngineConfiguration targetEgineConfiguration = (HasTaskIdGeneratorEngineConfiguration) targetEngineConfiguration;
-            if (targetEgineConfiguration.getTaskIdGenerator() == null) {
-                if (engineConfiguration instanceof HasTaskIdGeneratorEngineConfiguration) {
-                    targetEgineConfiguration.setTaskIdGenerator(((HasTaskIdGeneratorEngineConfiguration) engineConfiguration).getTaskIdGenerator());
-                } else {
-                    targetEgineConfiguration.setTaskIdGenerator(targetEngineConfiguration.getIdGenerator());
-                }
-            }
-        }
     }
 
     public CmmnEngineConfiguration getCmmnEngineConfiguration() {

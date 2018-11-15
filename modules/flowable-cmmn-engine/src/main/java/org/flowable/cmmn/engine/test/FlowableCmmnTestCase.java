@@ -103,6 +103,11 @@ public abstract class FlowableCmmnTestCase {
                 .getId();
     }
 
+    protected CaseInstance deployAndStartOneHumanTaskCaseModel() {
+        deployOneHumanTaskCaseModel();
+        return cmmnRuntimeService.createCaseInstanceBuilder().caseDefinitionKey("oneTaskCase").start();
+    }
+
     protected void deployOneTaskCaseModel() {
         deploymentId = cmmnRepositoryService.createDeployment()
                 .addClasspathResource("org/flowable/cmmn/test/one-task-model.cmmn")
@@ -114,6 +119,10 @@ public abstract class FlowableCmmnTestCase {
         Date date = new Date();
         cmmnEngineConfiguration.getClock().setCurrentTime(date);
         return date;
+    }
+
+    protected void setClockTo(long epochTime) {
+        setClockTo(new Date(epochTime));
     }
     
     protected void setClockTo(Date date) {

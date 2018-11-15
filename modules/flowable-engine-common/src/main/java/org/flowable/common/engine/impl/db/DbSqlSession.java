@@ -78,6 +78,9 @@ public class DbSqlSession implements Session {
     public void insert(Entity entity) {
         if (entity.getId() == null) {
             String id = Context.getCommandContext().getCurrentEngineConfiguration().getIdGenerator().getNextId();
+            if (dbSqlSessionFactory.isUsePrefixId()) {
+                id = entity.getIdPrefix() + id;
+            }
             entity.setId(id);
         }
         
@@ -304,10 +307,10 @@ public class DbSqlSession implements Session {
             Iterator<Entity> entitiesToDeleteIterator = deletedObjects.get(entityClass).values().iterator();
             while (entitiesToDeleteIterator.hasNext()) {
                 Entity entityToDelete = entitiesToDeleteIterator.next();
-                if (!ids.contains(entityToDelete.getId())) {
+                if (entityToDelete.getId() != null && !ids.contains(entityToDelete.getId())) {
                     ids.add(entityToDelete.getId());
                 } else {
-                    entitiesToDeleteIterator.remove(); // Removing duplicate deletes
+                    entitiesToDeleteIterator.remove(); // Removing duplicate deletes or entities without id
                 }
             }
 

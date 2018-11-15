@@ -12,6 +12,8 @@
  */
 package org.flowable.form.rest.service.api.form;
 
+import static org.flowable.common.rest.api.PaginateListUtil.paginateList;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -99,10 +101,10 @@ public class BaseFormInstanceResource {
         }
         
         if (restApiInterceptor != null) {
-            restApiInterceptor.accessFormInstanceInfoWithQuery(query);
+            restApiInterceptor.accessFormInstanceInfoWithQuery(query, queryRequest);
         }
 
-        return new FormInstancePaginateList(restResponseFactory).paginateList(requestParams, queryRequest, query, "submittedDate", allowedSortProperties);
+        return paginateList(requestParams, queryRequest, query, "submittedDate", allowedSortProperties, restResponseFactory::createFormInstanceResponse);
     }
 
 }

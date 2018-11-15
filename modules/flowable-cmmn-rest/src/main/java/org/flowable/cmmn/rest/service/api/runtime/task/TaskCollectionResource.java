@@ -69,6 +69,7 @@ public class TaskCollectionResource extends TaskBaseResource {
             @ApiImplicitParam(name = "taskDefinitionKey", dataType = "string", value = "Only return tasks with the given task definition id.", paramType = "query"),
             @ApiImplicitParam(name = "taskDefinitionKeyLike", dataType = "string", value = "Only return tasks with a given task definition id like the given value.", paramType = "query"),
             @ApiImplicitParam(name = "caseInstanceId", dataType = "string", value = "Only return tasks which are part of the case instance with the given id.", paramType = "query"),
+            @ApiImplicitParam(name = "caseInstanceIdWithChildren", dataType = "string", value = "Only return tasks which are part of the case instance and its children with the given id.", paramType = "query"),
             @ApiImplicitParam(name = "caseDefinitionId", dataType = "string", value = "Only return tasks which are part of a case instance which has a case definition with the given id.", paramType = "query"),
             @ApiImplicitParam(name = "createdOn", dataType = "string",format = "date-time", value = "Only return tasks which are created on the given date.", paramType = "query"),
             @ApiImplicitParam(name = "createdBefore", dataType = "string",format = "date-time", value = "Only return tasks which are created before the given date.", paramType = "query"),
@@ -175,6 +176,10 @@ public class TaskCollectionResource extends TaskBaseResource {
         if (requestParams.containsKey("caseInstanceId")) {
             request.setCaseInstanceId(requestParams.get("caseInstanceId"));
         }
+        
+        if (requestParams.containsKey("caseInstanceIdWithChildren")) {
+            request.setCaseInstanceIdWithChildren(requestParams.get("caseInstanceIdWithChildren"));
+        }
 
         if (requestParams.containsKey("createdOn")) {
             request.setCreatedOn(RequestUtil.getDate(requestParams, "createdOn"));
@@ -259,7 +264,7 @@ public class TaskCollectionResource extends TaskBaseResource {
         }
         
         if (restApiInterceptor != null) {
-            restApiInterceptor.createTask(task);
+            restApiInterceptor.createTask(task, taskRequest);
         }
         
         taskService.saveTask(task);

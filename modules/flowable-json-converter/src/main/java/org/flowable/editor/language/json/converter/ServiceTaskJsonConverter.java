@@ -61,6 +61,7 @@ public class ServiceTaskJsonConverter extends BaseBpmnJsonConverter implements D
         setPropertyValue(PROPERTY_SKIP_EXPRESSION, serviceTask.getSkipExpression(), propertiesNode);
 
         if ("mail".equalsIgnoreCase(serviceTask.getType())) {
+            setPropertyFieldValue(PROPERTY_MAILTASK_HEADERS, serviceTask, propertiesNode);
             setPropertyFieldValue(PROPERTY_MAILTASK_TO, serviceTask, propertiesNode);
             setPropertyFieldValue(PROPERTY_MAILTASK_FROM, serviceTask, propertiesNode);
             setPropertyFieldValue(PROPERTY_MAILTASK_SUBJECT, serviceTask, propertiesNode);
@@ -94,6 +95,11 @@ public class ServiceTaskJsonConverter extends BaseBpmnJsonConverter implements D
                 } else if (PROPERTY_DECISIONTABLE_THROW_ERROR_NO_HITS_KEY.equals(fieldExtension.getFieldName())) {
                     propertiesNode.set(PROPERTY_DECISIONTABLE_THROW_ERROR_NO_HITS,
                             BooleanNode.valueOf(Boolean.parseBoolean(fieldExtension.getStringValue())));
+                }
+                if (PROPERTY_DECISIONTABLE_FALLBACK_TO_DEFAULT_TENANT_KEY.equals(fieldExtension.getFieldName())) {
+                    propertiesNode.set(PROPERTY_DECISIONTABLE_FALLBACK_TO_DEFAULT_TENANT,
+                        BooleanNode.valueOf(Boolean.parseBoolean(fieldExtension.getStringValue()))
+                    );
                 }
             }
 

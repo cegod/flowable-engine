@@ -13,6 +13,7 @@
 
 package org.flowable.engine.impl.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import org.flowable.bpmn.model.SequenceFlow;
 import org.flowable.bpmn.model.StartEvent;
 import org.flowable.bpmn.model.UserTask;
 import org.flowable.common.engine.impl.history.HistoryLevel;
+import org.flowable.common.engine.impl.test.EnsureCleanDb;
 import org.flowable.engine.DynamicBpmnService;
 import org.flowable.engine.FormService;
 import org.flowable.engine.HistoryService;
@@ -47,10 +49,13 @@ import org.flowable.engine.impl.history.HistoryManager;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
+import org.flowable.job.api.Job;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Tom Baeyens
@@ -65,7 +70,7 @@ public abstract class AbstractFlowableTestCase extends AbstractTestCase {
 
     protected ProcessEngine processEngine;
 
-    protected List<String> deploymentIdsForAutoCleanup = new ArrayList<>();
+    protected static List<String> deploymentIdsForAutoCleanup = new ArrayList<>();
 
     protected ProcessEngineConfigurationImpl processEngineConfiguration;
     protected RepositoryService repositoryService;
@@ -91,10 +96,10 @@ public abstract class AbstractFlowableTestCase extends AbstractTestCase {
         dynamicBpmnService = processEngine.getDynamicBpmnService();
     }
 
-    @AfterEach
-    public final void cleanDeployments() {
+    protected static void cleanDeployments(ProcessEngine processEngine) {
+        ProcessEngineConfiguration processEngineConfiguration = processEngine.getProcessEngineConfiguration();
         for (String autoDeletedDeploymentId : deploymentIdsForAutoCleanup) {
-            repositoryService.deleteDeployment(autoDeletedDeploymentId, true);
+            processEngineConfiguration.getRepositoryService().deleteDeployment(autoDeletedDeploymentId, true);
         }
         deploymentIdsForAutoCleanup.clear();
     }
@@ -107,7 +112,7 @@ public abstract class AbstractFlowableTestCase extends AbstractTestCase {
             List<HistoricProcessInstance> historicProcessInstances = historyService.createHistoricProcessInstanceQuery().finished().list();
 
             for (HistoricProcessInstance historicProcessInstance : historicProcessInstances) {
-
+                
                 assertNotNull("Historic process instance has no process definition id", historicProcessInstance.getProcessDefinitionId());
                 assertNotNull("Historic process instance has no process definition key", historicProcessInstance.getProcessDefinitionKey());
                 assertNotNull("Historic process instance has no process definition version", historicProcessInstance.getProcessDefinitionVersion());
@@ -331,7 +336,8 @@ public abstract class AbstractFlowableTestCase extends AbstractTestCase {
         if (isAsyncHistoryEnabled) {
             processEngineConfiguration.setAsyncHistoryEnabled(false);
             asyncHistoryManager = processEngineConfiguration.getHistoryManager();
-            processEngineConfiguration.setHistoryManager(new DefaultHistoryManager(processEngineConfiguration, processEngineConfiguration.getHistoryLevel()));
+            processEngineConfiguration.setHistoryManager(new DefaultHistoryManager(processEngineConfiguration, 
+                    processEngineConfiguration.getHistoryLevel(), processEngineConfiguration.isUsePrefixId()));
         }
         
         for (org.flowable.engine.repository.Deployment deployment : repositoryService.createDeploymentQuery().list()) {
@@ -350,7 +356,8 @@ public abstract class AbstractFlowableTestCase extends AbstractTestCase {
         if (isAsyncHistoryEnabled) {
             processEngineConfiguration.setAsyncHistoryEnabled(false);
             asyncHistoryManager = processEngineConfiguration.getHistoryManager();
-            processEngineConfiguration.setHistoryManager(new DefaultHistoryManager(processEngineConfiguration, processEngineConfiguration.getHistoryLevel()));
+            processEngineConfiguration.setHistoryManager(new DefaultHistoryManager(processEngineConfiguration, 
+                    processEngineConfiguration.getHistoryLevel(), processEngineConfiguration.isUsePrefixId()));
         }
         
         repositoryService.deleteDeployment(deploymentId, true);
@@ -409,5 +416,37 @@ public abstract class AbstractFlowableTestCase extends AbstractTestCase {
 
     protected static<T> Map<String, List<T>> groupListContentBy(List<T> source, Function<T, String> classifier) {
         return source.stream().collect(Collectors.groupingBy(classifier));
+    }
+
+    protected String getJobActivityId(Job job) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Map<String, Object> jobConfigurationMap = objectMapper.readValue(job.getJobHandlerConfiguration(), new TypeReference<Map<String, Object>>() {
+
+            });
+            return (String) jobConfigurationMap.get("activityId");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected ProcessDefinition deployProcessDefinition(String name, String path) {
+        Deployment deployment = repositoryService.createDeployment()
+            .name(name)
+            .addClasspathResource(path)
+            .deploy();
+        
+        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+            .deploymentId(deployment.getId()).singleResult();
+
+        return processDefinition;
+    }
+
+    protected void completeProcessInstanceTasks(String processInstanceId) {
+        List<Task> tasks;
+        do {
+            tasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
+            tasks.forEach(this::completeTask);
+        } while (!tasks.isEmpty());
     }
 }

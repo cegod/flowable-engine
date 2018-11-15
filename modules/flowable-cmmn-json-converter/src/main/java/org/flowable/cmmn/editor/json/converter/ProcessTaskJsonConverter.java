@@ -12,19 +12,21 @@
  */
 package org.flowable.cmmn.editor.json.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.flowable.cmmn.editor.constants.CmmnStencilConstants;
-import org.flowable.cmmn.editor.json.converter.CmmnJsonConverter.CmmnModelIdHelper;
-import org.flowable.cmmn.model.BaseElement;
-import org.flowable.cmmn.model.CaseTask;
-import org.flowable.cmmn.model.CmmnModel;
-import org.flowable.cmmn.model.IOParameter;
-import org.flowable.cmmn.model.ProcessTask;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.flowable.cmmn.editor.constants.CmmnStencilConstants;
+import org.flowable.cmmn.editor.json.converter.CmmnJsonConverter.CmmnModelIdHelper;
+import org.flowable.cmmn.editor.json.converter.util.ListenerConverterUtil;
+import org.flowable.cmmn.model.BaseElement;
+import org.flowable.cmmn.model.CmmnModel;
+import org.flowable.cmmn.model.IOParameter;
+import org.flowable.cmmn.model.PlanItem;
+import org.flowable.cmmn.model.ProcessTask;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Tijs Rademakers
@@ -44,7 +46,7 @@ public class ProcessTaskJsonConverter extends BaseCmmnJsonConverter implements P
     }
 
     public static void fillCmmnTypes(Map<Class<? extends BaseElement>, Class<? extends BaseCmmnJsonConverter>> convertersToJsonMap) {
-        convertersToJsonMap.put(CaseTask.class, ProcessTaskJsonConverter.class);
+        convertersToJsonMap.put(ProcessTask.class, ProcessTaskJsonConverter.class);
     }
     
     @Override
@@ -55,7 +57,11 @@ public class ProcessTaskJsonConverter extends BaseCmmnJsonConverter implements P
     @Override
     protected void convertElementToJson(ObjectNode elementNode, ObjectNode propertiesNode, ActivityProcessor processor,
             BaseElement baseElement, CmmnModel cmmnModel) {
-        // todo
+        // todo implement rest of the properties
+        ProcessTask processTask = (ProcessTask) ((PlanItem) baseElement).getPlanItemDefinition();
+
+        propertiesNode.put(PROPERTY_FALLBACK_TO_DEFAULT_TENANT, processTask.isFallbackToDefaultTenant());
+        ListenerConverterUtil.convertLifecycleListenersToJson(objectMapper, propertiesNode, processTask);
     }
 
     @Override
@@ -76,30 +82,36 @@ public class ProcessTaskJsonConverter extends BaseCmmnJsonConverter implements P
         JsonNode processTaskInParametersNode = CmmnJsonConverterUtil.getProperty(CmmnStencilConstants.PROPERTY_PROCESS_IN_PARAMETERS, elementNode);
         if (processTaskInParametersNode != null && processTaskInParametersNode.has("inParameters") && !processTaskInParametersNode.get("inParameters").isNull()) {
             JsonNode inParametersNode =  processTaskInParametersNode.get("inParameters");
-            List<IOParameter> inParameters = new ArrayList<>();
-            readIOParameter(inParametersNode, inParameters);
-            task.setInParameters(inParameters);
+            task.setInParameters(readIOParameters(inParametersNode));
         }
-
 
         JsonNode processTaskOutParametersNode = CmmnJsonConverterUtil.getProperty(CmmnStencilConstants.PROPERTY_PROCESS_OUT_PARAMETERS, elementNode);
         if (processTaskOutParametersNode != null && processTaskOutParametersNode.has("outParameters") && !processTaskOutParametersNode.get("outParameters").isNull()) {
             JsonNode outParametersNode =  processTaskOutParametersNode.get("outParameters");
-            List<IOParameter> outParameters = new ArrayList<>();
-            readIOParameter(outParametersNode, outParameters);
-            task.setOutParameters(outParameters);
+            task.setOutParameters(readIOParameters(outParametersNode));
         }
+
+        JsonNode fallbackToDefaultTenant = CmmnJsonConverterUtil.getProperty(CmmnStencilConstants.PROPERTY_FALLBACK_TO_DEFAULT_TENANT, elementNode);
+        if (fallbackToDefaultTenant != null) {
+            task.setFallbackToDefaultTenant(fallbackToDefaultTenant.booleanValue());
+        }
+
+        ListenerConverterUtil.convertJsonToLifeCycleListeners(elementNode, task);
+
         return task;
     }
 
-    private void readIOParameter(JsonNode outParametersNode, List<IOParameter> ioParameters) {
-        for (JsonNode in : outParametersNode){
+    private List<IOParameter> readIOParameters(JsonNode parametersNode) {
+        List<IOParameter> ioParameters = new ArrayList<>();
+        for (JsonNode paramNode : parametersNode){
             IOParameter ioParameter = new IOParameter();
-            ioParameter.setSource(in.get("source").asText());
-            ioParameter.setSourceExpression(in.get("sourceExpression").asText());
-            ioParameter.setTarget(in.get("target").asText());
+            ioParameter.setSource(paramNode.get("source").asText());
+            ioParameter.setSourceExpression(paramNode.get("sourceExpression").asText());
+            ioParameter.setTarget(paramNode.get("target").asText());
+            ioParameter.setTargetExpression(paramNode.get("targetExpression").asText());
             ioParameters.add(ioParameter);
         }
+        return ioParameters;
     }
 
     @Override

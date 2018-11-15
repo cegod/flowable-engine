@@ -47,7 +47,7 @@ import org.flowable.variable.service.impl.persistence.entity.VariableScopeImpl;
  * @author Joram Barrez
  */
 
-public class ExecutionEntityImpl extends VariableScopeImpl implements ExecutionEntity, CountingExecutionEntity {
+public class ExecutionEntityImpl extends AbstractBpmnEngineVariableScopeEntity implements ExecutionEntity, CountingExecutionEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -287,8 +287,10 @@ public class ExecutionEntityImpl extends VariableScopeImpl implements ExecutionE
         this.currentFlowElement = currentFlowElement;
         if (currentFlowElement != null) {
             this.activityId = currentFlowElement.getId();
+            this.activityName = currentFlowElement.getName();
         } else {
             this.activityId = null;
+            this.activityName = null;
         }
     }
 
@@ -509,7 +511,7 @@ public class ExecutionEntityImpl extends VariableScopeImpl implements ExecutionE
     }
 
     protected void ensureRootProcessInstanceInitialized() {
-        if (rootProcessInstanceId == null) {
+        if (rootProcessInstance == null && rootProcessInstanceId != null) {
             rootProcessInstance = (ExecutionEntityImpl) CommandContextUtil.getExecutionEntityManager().findById(rootProcessInstanceId);
         }
     }
@@ -1086,6 +1088,10 @@ public class ExecutionEntityImpl extends VariableScopeImpl implements ExecutionE
     }
 
     public String getActivityName() {
+        return activityName;
+    }
+
+    public String getCurrentActivityName() {
         return activityName;
     }
 

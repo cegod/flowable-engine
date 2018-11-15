@@ -15,7 +15,9 @@ package org.flowable.cmmn.editor.json.converter;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.flowable.cmmn.editor.constants.CmmnStencilConstants;
 import org.flowable.cmmn.editor.json.converter.CmmnJsonConverter.CmmnModelIdHelper;
+import org.flowable.cmmn.editor.json.converter.util.ListenerConverterUtil;
 import org.flowable.cmmn.editor.json.model.CmmnModelInfo;
 import org.flowable.cmmn.model.BaseElement;
 import org.flowable.cmmn.model.CaseElement;
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Tijs Rademakers
+ * @author Joram Barrez
  */
 public class StageJsonConverter extends BaseCmmnJsonConverter implements FormAwareConverter, FormKeyAwareConverter,
         DecisionTableAwareConverter, DecisionTableKeyAwareConverter, CaseModelAwareConverter, ProcessModelAwareConverter {
@@ -66,12 +69,18 @@ public class StageJsonConverter extends BaseCmmnJsonConverter implements FormAwa
         PlanItem planItem = (PlanItem) baseElement;
         Stage stage = (Stage) planItem.getPlanItemDefinition();
 
+        if (stage.getDisplayOrder() != null) {
+            propertiesNode.put(PROPERTY_DISPLAY_ORDER, stage.getDisplayOrder());
+        }
+
         GraphicInfo graphicInfo = cmmnModel.getGraphicInfo(planItem.getId());
         ArrayNode subProcessShapesArrayNode = objectMapper.createArrayNode();
-        
+
         processor.processPlanItems(stage, cmmnModel, subProcessShapesArrayNode, formKeyMap, decisionTableKeyMap, graphicInfo.getX(), graphicInfo.getY());
         
         elementNode.set("childShapes", subProcessShapesArrayNode);
+
+        ListenerConverterUtil.convertLifecycleListenersToJson(objectMapper, propertiesNode, stage);
     }
     
     @Override
@@ -86,12 +95,16 @@ public class StageJsonConverter extends BaseCmmnJsonConverter implements FormAwa
             stage.setAutoCompleteCondition(autoCompleteCondition);
         }
 
+        stage.setDisplayOrder(CmmnJsonConverterUtil.getPropertyValueAsInteger(CmmnStencilConstants.PROPERTY_DISPLAY_ORDER, elementNode));
+
         JsonNode childShapesArray = elementNode.get(EDITOR_CHILD_SHAPES);
         processor.processJsonElements(childShapesArray, modelNode, stage, shapeMap, formMap, decisionTableMap, 
                         caseModelMap, processModelMap, cmmnModel, cmmnModelIdHelper);
         
         Stage parentStage = (Stage) parentElement;
         stage.setParent(parentStage);
+
+        ListenerConverterUtil.convertJsonToLifeCycleListeners(elementNode, stage);
 
         return stage;
     }

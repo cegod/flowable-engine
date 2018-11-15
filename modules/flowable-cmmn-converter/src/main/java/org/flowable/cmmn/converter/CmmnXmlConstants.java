@@ -50,18 +50,32 @@ public interface CmmnXmlConstants {
     String ELEMENT_DECISION_TASK = "decisionTask";
     String ELEMENT_TIMER_EVENT_LISTENER = "timerEventListener";
     String ELEMENT_USER_EVENT_LISTENER = "userEventListener";
+    String ELEMENT_GENERIC_EVENT_LISTENER = "eventListener";
     String ELEMENT_PLAN_ITEM = "planItem";
     String ELEMENT_ITEM_CONTROL = "itemControl";
     String ELEMENT_DEFAULT_CONTROL = "defaultControl";
+
+    String ELEMENT_TASK_LISTENER = "taskListener";
+    String ELEMENT_PLAN_ITEM_LIFECYCLE_LISTENER = "planItemLifecycleListener";
+    public static final String ATTRIBUTE_LISTENER_CLASS = "class";
+    public static final String ATTRIBUTE_LISTENER_EXPRESSION = "expression";
+    public static final String ATTRIBUTE_LISTENER_DELEGATEEXPRESSION = "delegateExpression";
+    public static final String ATTRIBUTE_LISTENER_EVENT = "event";
+    public static final String ATTRIBUTE_LISTENER_SOURCE_STATE = "sourceState";
+    public static final String ATTRIBUTE_LISTENER_TARGET_STATE = "targetState";
+    public static final String ATTRIBUTE_LISTENER_ON_TRANSACTION = "onTransaction";
+
     String ELEMENT_SENTRY = "sentry";
     String ELEMENT_PLAN_ITEM_ON_PART = "planItemOnPart";
     String ELEMENT_STANDARD_EVENT = "standardEvent";
     String ELEMENT_ENTRY_CRITERION = "entryCriterion";
     String ELEMENT_EXIT_CRITERION = "exitCriterion";
     String ELEMENT_IF_PART = "ifPart";
-    String ELEMENT_EXTENSIONS = "extensionElements";
+    String ELEMENT_EXTENSION_ELEMENTS = "extensionElements";
     String ELEMENT_HTTP_RESPONSE_HANDLER = "httpResponseHandler";
     String ELEMENT_HTTP_REQUEST_HANDLER = "httpRequestHandler";
+
+    String ATTRIBUTE_TRIGGER_MODE = "triggerMode";
 
     String ELEMENT_REQUIRED_RULE = "requiredRule";
     String ELEMENT_MANUAL_ACTIVATION_RULE = "manualActivationRule";
@@ -76,6 +90,8 @@ public interface CmmnXmlConstants {
     String ATTRIBUTE_ID = "id";
     String ATTRIBUTE_NAME = "name";
     String ATTRIBUTE_INITIATOR_VARIABLE_NAME = "initiatorVariableName";
+    String ATTRIBUTE_CASE_CANDIDATE_USERS = "candidateStarterUsers";
+    String ATTRIBUTE_CASE_CANDIDATE_GROUPS = "candidateStarterGroups";
     String ATTRIBUTE_TEXT_FORMAT = "textFormat";
     String ATTRIBUTE_DEFINITION_REF = "definitionRef";
     String ATTRIBUTE_SOURCE_REF = "sourceRef";
@@ -88,15 +104,18 @@ public interface CmmnXmlConstants {
     String ATTRIBUTE_IS_AUTO_COMPLETE = "autoComplete";
     String ATTRIBUTE_AUTO_COMPLETE_CONDITION = "autoCompleteCondition";
 
+    String ATTRIBUTE_DISPLAY_ORDER = "displayOrder";
+
     String ATTRIBUTE_CASE_REF = "caseRef";
     String ATTRIBUTE_PROCESS_REF = "processRef";
     String ATTRIBUTE_DECISION_REF = "decisionRef";
+    String ATTRIBUTE_FALLBACK_TO_DEFAULT_TENANT = "fallbackToDefaultTenant";
 
     String ELEMENT_PROCESS_REF_EXPRESSION = "processRefExpression";
     String ELEMENT_DECISION_REF_EXPRESSION = "decisionRefExpression";
     String ELEMENT_CONDITION = "condition";
 
-    String ELEMENT_PARAMETER_MAPPING = "extensionElements";
+    String ELEMENT_PARAMETER_MAPPING = "parameterMapping";
 
     String ELEMENT_PROCESS_TASK_IN_PARAMETERS = "in";
     String ELEMENT_PROCESS_TASK_OUT_PARAMETERS = "out";
@@ -104,6 +123,7 @@ public interface CmmnXmlConstants {
     String ATTRIBUTE_IOPARAMETER_SOURCE = "source";
     String ATTRIBUTE_IOPARAMETER_SOURCE_EXPRESSION = "sourceExpression";
     String ATTRIBUTE_IOPARAMETER_TARGET = "target";
+    String ATTRIBUTE_IOPARAMETER_TARGET_EXPRESSION = "targetExpression";
 
     String ELEMENT_TIMER_EXPRESSION = "timerExpression";
     String ELEMENT_PLAN_ITEM_START_TRIGGER = "planItemStartTrigger";

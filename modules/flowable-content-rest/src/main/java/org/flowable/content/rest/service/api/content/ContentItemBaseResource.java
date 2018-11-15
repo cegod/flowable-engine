@@ -13,6 +13,8 @@
 
 package org.flowable.content.rest.service.api.content;
 
+import static org.flowable.common.rest.api.PaginateListUtil.paginateList;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -188,10 +190,10 @@ public class ContentItemBaseResource {
         }
         
         if (restApiInterceptor != null) {
-            restApiInterceptor.accessContentItemInfoWithQuery(contentItemQuery);
+            restApiInterceptor.accessContentItemInfoWithQuery(contentItemQuery, request);
         }
 
-        return new ContentItemPaginateList(restResponseFactory).paginateList(requestParams, request, contentItemQuery, "created", properties);
+        return paginateList(requestParams, request, contentItemQuery, "created", properties, restResponseFactory::createContentItemResponseList);
     }
 
     protected ContentItem getContentItemFromRequest(String contentItemId) {

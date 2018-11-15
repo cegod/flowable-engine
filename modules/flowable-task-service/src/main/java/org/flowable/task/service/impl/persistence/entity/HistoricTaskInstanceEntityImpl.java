@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.flowable.common.engine.impl.context.Context;
-import org.flowable.common.engine.impl.persistence.entity.AbstractEntity;
 import org.flowable.identitylink.service.impl.persistence.entity.HistoricIdentityLinkEntity;
 import org.flowable.task.service.TaskServiceConfiguration;
 import org.flowable.task.service.impl.util.CommandContextUtil;
@@ -32,7 +31,7 @@ import org.flowable.variable.service.impl.persistence.entity.HistoricVariableIns
  * @author Tom Baeyens
  * @author Joram Barrez
  */
-public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements HistoricTaskInstanceEntity {
+public class HistoricTaskInstanceEntityImpl extends AbstractTaskServiceEntity implements HistoricTaskInstanceEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -44,7 +43,7 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
     protected String subScopeId;
     protected String scopeType;
     protected String scopeDefinitionId;
-    protected Date startTime;
+    protected Date createTime;
     protected Date endTime;
     protected Long durationInMillis;
     protected String deleteReason;
@@ -87,7 +86,7 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
         this.description = task.getDescription();
         this.owner = task.getOwner();
         this.assignee = task.getAssignee();
-        this.startTime = CommandContextUtil.getTaskServiceConfiguration().getClock().getCurrentTime();
+        this.createTime = task.getCreateTime();
         this.taskDefinitionKey = task.getTaskDefinitionKey();
         this.formKey = task.getFormKey();
 
@@ -136,8 +135,8 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
         if (this.endTime == null) {
             this.deleteReason = deleteReason;
             this.endTime = CommandContextUtil.getTaskServiceConfiguration().getClock().getCurrentTime();
-            if (endTime != null && startTime != null) {
-                this.durationInMillis = endTime.getTime() - startTime.getTime();
+            if (endTime != null && createTime != null) {
+                this.durationInMillis = endTime.getTime() - createTime.getTime();
             }
         }
     }
@@ -211,7 +210,7 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
 
     @Override
     public Date getStartTime() {
-        return startTime;
+        return getCreateTime(); // For backwards compatible reason implemented with createTime and startTime
     }
 
     @Override
@@ -240,8 +239,8 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
     }
 
     @Override
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -324,7 +323,7 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
 
     @Override
     public Date getCreateTime() {
-        return getStartTime(); // For backwards compatible reason implemented with createTime and startTime
+        return createTime;
     }
 
     @Override
@@ -409,7 +408,7 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
 
     @Override
     public Date getTime() {
-        return getStartTime();
+        return getCreateTime();
     }
 
     @Override
@@ -498,5 +497,5 @@ public class HistoricTaskInstanceEntityImpl extends AbstractEntity implements Hi
     public String toString() {
         return "HistoricTaskInstanceEntity[id=" + id + "]";
     }
-    
+
 }

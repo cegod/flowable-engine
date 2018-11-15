@@ -35,8 +35,11 @@ public class ProcessInstanceBuilderImpl implements ProcessInstanceBuilder {
     protected String callbackId;
     protected String callbackType;
     protected String tenantId;
+    protected String overrideDefinitionTenantId;
+    protected String predefinedProcessInstanceId;
     protected Map<String, Object> variables;
     protected Map<String, Object> transientVariables;
+    protected boolean fallbackToDefaultTenant;
 
     public ProcessInstanceBuilderImpl(RuntimeServiceImpl runtimeService) {
         this.runtimeService = runtimeService;
@@ -89,6 +92,18 @@ public class ProcessInstanceBuilderImpl implements ProcessInstanceBuilder {
         this.tenantId = tenantId;
         return this;
     }
+    
+    @Override
+    public ProcessInstanceBuilder overrideProcessDefinitionTenantId(String tenantId) {
+        this.overrideDefinitionTenantId = tenantId;
+        return this;
+    }
+
+    @Override
+    public ProcessInstanceBuilder predefineProcessInstanceId(String processInstanceId) {
+        this.predefinedProcessInstanceId = processInstanceId;
+        return this;
+    }
 
     @Override
     public ProcessInstanceBuilder variables(Map<String, Object> variables) {
@@ -135,8 +150,19 @@ public class ProcessInstanceBuilderImpl implements ProcessInstanceBuilder {
     }
 
     @Override
+    public ProcessInstanceBuilder fallbackToDefaultTenant() {
+        this.fallbackToDefaultTenant = true;
+        return this;
+    }
+
+    @Override
     public ProcessInstance start() {
         return runtimeService.startProcessInstance(this);
+    }
+
+    @Override
+    public ProcessInstance startAsync() {
+        return runtimeService.startProcessInstanceAsync(this);
     }
 
     public String getProcessDefinitionId() {
@@ -171,12 +197,24 @@ public class ProcessInstanceBuilderImpl implements ProcessInstanceBuilder {
         return tenantId;
     }
 
+    public String getOverrideDefinitionTenantId() {
+        return overrideDefinitionTenantId;
+    }
+
+    public String getPredefinedProcessInstanceId() {
+        return predefinedProcessInstanceId;
+    }
+
     public Map<String, Object> getVariables() {
         return variables;
     }
 
     public Map<String, Object> getTransientVariables() {
         return transientVariables;
+    }
+
+    public boolean isFallbackToDefaultTenant() {
+        return fallbackToDefaultTenant;
     }
 
 }

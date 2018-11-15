@@ -24,6 +24,7 @@ import org.flowable.cmmn.engine.impl.behavior.PlanItemActivityBehavior;
 import org.flowable.cmmn.engine.impl.persistence.entity.PlanItemInstanceEntity;
 import org.flowable.cmmn.engine.impl.task.TaskHelper;
 import org.flowable.cmmn.engine.impl.util.CommandContextUtil;
+import org.flowable.cmmn.engine.impl.util.EntityLinkUtil;
 import org.flowable.cmmn.model.HumanTask;
 import org.flowable.cmmn.model.PlanItemTransition;
 import org.flowable.common.engine.api.FlowableException;
@@ -34,6 +35,7 @@ import org.flowable.common.engine.impl.el.ExpressionManager;
 import org.flowable.common.engine.impl.interceptor.CommandContext;
 import org.flowable.identitylink.service.impl.persistence.entity.IdentityLinkEntity;
 import org.flowable.task.service.TaskService;
+import org.flowable.task.service.delegate.TaskListener;
 import org.flowable.task.service.impl.persistence.CountingTaskEntity;
 import org.flowable.task.service.impl.persistence.entity.TaskEntity;
 import org.joda.time.DateTime;
@@ -83,6 +85,14 @@ public class HumanTaskActivityBehavior extends TaskActivityBehavior implements P
             handleCandidateGroups(commandContext, planItemInstanceEntity, expressionManager, taskEntity);
 
             CommandContextUtil.getCmmnHistoryManager(commandContext).recordTaskCreated(taskEntity);
+            
+            if (CommandContextUtil.getCmmnEngineConfiguration(commandContext).isEnableEntityLinks()) {
+                EntityLinkUtil.copyExistingEntityLinks(planItemInstanceEntity.getCaseInstanceId(), taskEntity.getId(), ScopeTypes.TASK);
+                EntityLinkUtil.createNewEntityLink(planItemInstanceEntity.getCaseInstanceId(), taskEntity.getId(), ScopeTypes.TASK);
+            }
+
+            CommandContextUtil.getCmmnEngineConfiguration(commandContext).getListenerNotificationHelper()
+                .executeTaskListeners(humanTask, taskEntity, TaskListener.EVENTNAME_CREATE);
 
         } else {
             // if not blocking, treat as a manual task. No need to create a task entry.

@@ -49,7 +49,7 @@ public class StartTimerEventTest extends PluggableFlowableTestCase {
 
         // After setting the clock to time '50 minutes and 5 seconds', the second timer should fire
         processEngineConfiguration.getClock().setCurrentTime(new Date(startTime.getTime() + ((50 * 60 * 1000) + 5000)));
-        waitForJobExecutorToProcessAllJobs(5000L, 200L);
+        waitForJobExecutorToProcessAllJobs(7000L, 200L);
 
         List<ProcessInstance> pi = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExample").list();
         assertEquals(1, pi.size());
@@ -66,7 +66,7 @@ public class StartTimerEventTest extends PluggableFlowableTestCase {
         assertEquals(1, jobQuery.count());
 
         processEngineConfiguration.getClock().setCurrentTime(new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").parse("15/11/2036 11:12:30"));
-        waitForJobExecutorToProcessAllJobs(5000L, 200L);
+        waitForJobExecutorToProcessAllJobs(7000L, 200L);
 
         List<ProcessInstance> pi = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExample").list();
         assertEquals(1, pi.size());
@@ -144,7 +144,7 @@ public class StartTimerEventTest extends PluggableFlowableTestCase {
         assertEquals(1, jobQuery.count());
 
         processEngineConfiguration.getClock().setCurrentTime(new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").parse("15/11/2036 11:12:30"));
-        waitForJobExecutorToProcessAllJobs(5000L, 200L);
+        waitForJobExecutorToProcessAllJobs(7000L, 200L);
 
         List<ProcessInstance> pi = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExample").list();
         assertEquals(1, pi.size());
@@ -281,7 +281,7 @@ public class StartTimerEventTest extends PluggableFlowableTestCase {
         // v4 has no timer
 
         // Deploy v1
-        String deployment1 = repositoryService.createDeployment()
+        repositoryService.createDeployment()
                 .addClasspathResource("org/flowable/engine/test/bpmn/event/timer/StartTimerEventTest.testTimersRecreatedOnDeploymentDelete_v1.bpmn20.xml")
                 .deploy().getId();
 
@@ -357,7 +357,7 @@ public class StartTimerEventTest extends PluggableFlowableTestCase {
         String testTenant = "Activiti-tenant";
 
         // Deploy v1
-        String deployment1 = repositoryService.createDeployment()
+        repositoryService.createDeployment()
                 .addClasspathResource("org/flowable/engine/test/bpmn/event/timer/StartTimerEventTest.testTimersRecreatedOnDeploymentDelete_v1.bpmn20.xml")
                 .tenantId(testTenant)
                 .deploy().getId();

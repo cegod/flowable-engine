@@ -13,6 +13,8 @@
 
 package org.flowable.cmmn.rest.service.api.repository;
 
+import static org.flowable.common.rest.api.PaginateListUtil.paginateList;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -133,6 +135,9 @@ public class CaseDefinitionCollectionResource {
         if (allRequestParams.containsKey("deploymentId")) {
             caseDefinitionQuery.deploymentId(allRequestParams.get("deploymentId"));
         }
+        if (allRequestParams.containsKey("startableByUser")) {
+            caseDefinitionQuery.startableByUser(allRequestParams.get("startableByUser"));
+        }
         if (allRequestParams.containsKey("tenantId")) {
             caseDefinitionQuery.caseDefinitionTenantId(allRequestParams.get("tenantId"));
         }
@@ -144,6 +149,6 @@ public class CaseDefinitionCollectionResource {
             restApiInterceptor.accessCaseDefinitionsWithQuery(caseDefinitionQuery);
         }
 
-        return new CaseDefinitionsPaginateList(restResponseFactory).paginateList(allRequestParams, caseDefinitionQuery, "name", properties);
+        return paginateList(allRequestParams, caseDefinitionQuery, "name", properties, restResponseFactory::createCaseDefinitionResponseList);
     }
 }

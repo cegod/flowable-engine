@@ -143,6 +143,15 @@ public abstract class BaseBpmnJsonConverter implements EditorJsonConstants, Sten
                     outgoingArrayNode.add(BpmnJsonConverterUtil.createResourceNode(messageFlow.getId()));
                 }
             }
+            for (Artifact artifact : model.getMainProcess().getArtifacts()) {
+                if (artifact instanceof  Association){
+                    Association association= (Association) artifact;
+                    if (association.getSourceRef().equals(flowNode.getId())){
+                        outgoingArrayNode.add(BpmnJsonConverterUtil.createResourceNode(artifact.getId()));
+                    }
+
+                }
+            }
         }
 
         if (baseElement instanceof Activity) {
@@ -154,6 +163,7 @@ public abstract class BaseBpmnJsonConverter implements EditorJsonConstants, Sten
 
             propertiesNode.put(PROPERTY_ASYNCHRONOUS, activity.isAsynchronous());
             propertiesNode.put(PROPERTY_EXCLUSIVE, !activity.isNotExclusive());
+            propertiesNode.put(PROPERTY_FOR_COMPENSATION,activity.isForCompensation());
 
             if (activity.getLoopCharacteristics() != null) {
                 MultiInstanceLoopCharacteristics loopDef = activity.getLoopCharacteristics();
@@ -309,7 +319,7 @@ public abstract class BaseBpmnJsonConverter implements EditorJsonConstants, Sten
                 Activity activity = (Activity) baseElement;
                 activity.setAsynchronous(getPropertyValueAsBoolean(PROPERTY_ASYNCHRONOUS, elementNode));
                 activity.setNotExclusive(!getPropertyValueAsBoolean(PROPERTY_EXCLUSIVE, elementNode));
-
+                activity.setForCompensation(getPropertyValueAsBoolean(PROPERTY_FOR_COMPENSATION, elementNode));
                 String multiInstanceType = getPropertyValueAsString(PROPERTY_MULTIINSTANCE_TYPE, elementNode);
                 String multiInstanceCardinality = getPropertyValueAsString(PROPERTY_MULTIINSTANCE_CARDINALITY, elementNode);
                 String multiInstanceCollection = getPropertyValueAsString(PROPERTY_MULTIINSTANCE_COLLECTION, elementNode);
@@ -419,6 +429,11 @@ public abstract class BaseBpmnJsonConverter implements EditorJsonConstants, Sten
             } else {
                 propertyItemNode.putNull(PROPERTY_FORM_VARIABLE);
             }
+            if (StringUtils.isNotEmpty(property.getDefaultExpression())) {
+                propertyItemNode.put(PROPERTY_FORM_DEFAULT, property.getDefaultExpression());
+            } else {
+                propertyItemNode.putNull(PROPERTY_FORM_DEFAULT);
+            }
             if (StringUtils.isNotEmpty(property.getDatePattern())) {
                 propertyItemNode.put(PROPERTY_FORM_DATE_PATTERN, property.getDatePattern());
             }
@@ -524,7 +539,7 @@ public abstract class BaseBpmnJsonConverter implements EditorJsonConstants, Sten
                         formProperty.setType(getValueAsString(PROPERTY_FORM_TYPE, formNode));
                         formProperty.setExpression(getValueAsString(PROPERTY_FORM_EXPRESSION, formNode));
                         formProperty.setVariable(getValueAsString(PROPERTY_FORM_VARIABLE, formNode));
-
+                        formProperty.setDefaultExpression(getValueAsString(PROPERTY_FORM_DEFAULT, formNode));
                         if ("date".equalsIgnoreCase(formProperty.getType())) {
                             formProperty.setDatePattern(getValueAsString(PROPERTY_FORM_DATE_PATTERN, formNode));
 

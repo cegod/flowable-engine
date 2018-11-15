@@ -112,6 +112,16 @@
       "popular" : true
     } ]
   }, {
+    "name" : "tasklistenerspackage",
+    "properties" : [ {
+      "id" : "tasklisteners",
+      "type" : "multiplecomplex",
+      "title" : "Task listeners",
+      "value" : "",
+      "description" : "Listeners for a human task",
+      "popular" : true
+    } ]
+  }, {
     "name" : "formpropertiespackage",
     "properties" : [ {
       "id" : "formproperties",
@@ -239,6 +249,16 @@
       "popular" : true
     } ]
   }, {
+    "name" : "mailtaskheaderspackage",
+    "properties" : [ {
+      "id" : "mailtaskheaders",
+      "type" : "Text",
+      "title" : "Headers",
+      "value" : "",
+      "description" : "Line separated Mail headers (For example - X-Attribute: value).",
+      "popular" : true
+    } ]
+  }, {
     "name" : "mailtasktopackage",
     "properties" : [ {
       "id" : "mailtaskto",
@@ -357,6 +377,16 @@
       "title" : "Throw error if no rules were hit",
       "value" : "false",
       "description" : "Should an error be thrown if no rules of the decision table were hit and consequently no result was found.",
+      "popular" : true
+    } ]
+  }, {
+    "name" : "decisiontaskfallbacktodefaulttenantpackage",
+    "properties" : [ {
+      "id" : "decisiontaskfallbacktodefaulttenant",
+      "type" : "Boolean",
+      "title" : "Fallback to default tenant",
+      "value" : "false",
+      "description" : "Find decision definition without tenant when previous attemps to find it with tenant failed.",
       "popular" : true
     } ]
   }, {
@@ -584,6 +614,16 @@
       "popular" : true
     } ]
   }, {
+    "name" : "fallbacktodefaulttenantpackage",
+    "properties" : [ {
+      "id" : "fallbacktodefaulttenant",
+      "type" : "Boolean",
+      "title" : "Fallback to default tenant",
+      "value" : "false",
+      "description" : "Use default tenant as a fallback when definition is not found by key in the specified tenant",
+      "popular" : true
+    } ]
+  }, {
       "name" : "processtaskinparameterspackage",
       "properties" : [ {
         "id" : "processtaskinparameters",
@@ -650,10 +690,20 @@
       "type" : "String",
       "title" : "Condition",
       "value" : "",
-      "description" : "An expression that must be true to satisfy the sentry",
+      "description" : "",
       "popular" : true
     } ]
   }, {
+      "name" : "triggermodepackage",
+      "properties" : [ {
+        "id" : "triggermode",
+        "type" : "flowable-triggermode",
+        "title" : "Trigger mode",
+        "value" : "",
+        "description" : "Determines if the sentry conditions are evaluated with memory (default) of without (on-event). The default means that the parts (on- and ifparts) of a sentry being satisfied will be stored. Subsequent evaluations will use the stored parts when the sentry is re-evaluated. Using 'on-event', all parts are evaluated and if all are true the sentry is satisfied. If not, all results are discarded and not stored.",
+        "popular" : true
+      } ]
+    }, {
     "name" : "autocompletepackage",
     "properties" : [ {
       "id" : "autocompleteenabled",
@@ -751,6 +801,33 @@
       "popular" : true
     }]
   }, {
+      "name" : "planitemlifecyclelistenerspackage",
+      "properties" : [ {
+        "id" : "planitemlifecyclelisteners",
+        "type" : "multiplecomplex",
+        "title" : "Lifecycle listeners",
+        "value" : "",
+        "description" : "Listeners for lifecycle events of a plan item",
+        "popular" : true
+      } ]
+    }, {
+      "name" : "displayorderpackage",
+      "properties" : [ {
+        "id" : "displayorder",
+        "type" : "String",
+        "title" : "Display order",
+        "value" : "",
+        "description" : "A number value indicating the order compared to other stages when getting or showing a stage overview.",
+        "popular" : true
+      }, {
+        "id" : "completionneutralrulecondition",
+        "type" : "String",
+        "title" : "Completion neutral Rule",
+        "value" : "",
+        "description" : "An expression that is resolved to determine if the plan item is completion neutral.",
+        "popular" : true
+      }]
+    }, {
     "name": "scriptformatpackage",
     "properties" : [ {
         "id": "scriptformat",
@@ -831,7 +908,9 @@
       "requiredrulepackage",
       "repetitionrulepackage",
       "manualactivationrulepackage",
-      "completionneutralrulepackage"
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage",
+      "displayorderpackage"
     ],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "StageActivity", "all", "association_start", "association_end" ]
@@ -852,7 +931,8 @@
       "requiredrulepackage",
       "repetitionrulepackage",
       "manualactivationrulepackage",
-      "completionneutralrulepackage"],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage"],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -873,11 +953,13 @@
       "formreferencepackage",
       "duedatedefinitionpackage",
       "prioritydefinitionpackage",
+      "tasklistenerspackage",
       "asyncpackage",
       "requiredrulepackage",
       "repetitionrulepackage",
       "manualactivationrulepackage",
-      "completionneutralrulepackage" ],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage" ],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -901,7 +983,8 @@
       "requiredrulepackage",
       "repetitionrulepackage",
       "manualactivationrulepackage",
-      "completionneutralrulepackage" ],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage" ],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   },
@@ -921,11 +1004,13 @@
         "documentationpackage",
         "decisiontaskdecisiontablereferencepackage",
         "decisiontaskthrowerroronnohitspackage",
+        "decisiontaskfallbacktodefaulttenantpackage",
         "asyncpackage",
         "requiredrulepackage",
         "repetitionrulepackage",
         "manualactivationrulepackage",
-        "completionneutralrulepackage"
+        "completionneutralrulepackage",
+        "planitemlifecyclelistenerspackage"
       ],
       "hiddenPropertyPackages": [],
       "roles": [
@@ -970,7 +1055,8 @@
         "httptasksaveresponseparameterspackage",
         "httptaskresultvariableprefixpackage",
         "httptasksaveresponseparameterstransientpackage",
-        "httptasksaveresponseasjsonpackage"
+        "httptasksaveresponseasjsonpackage",
+        "planitemlifecyclelistenerspackage"
       ],
       "hiddenPropertyPackages": [],
       "roles": [
@@ -1000,7 +1086,8 @@
         "completionneutralrulepackage",
         "scriptformatpackage", 
         "scripttextpackage",
-        "servicetaskresultvariablepackage"
+        "servicetaskresultvariablepackage",
+        "planitemlifecyclelistenerspackage"
       ],
       "hiddenPropertyPackages" : [ ],
       "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
@@ -1018,7 +1105,8 @@
       "documentationpackage",
       "requiredrulepackage",
       "repetitionrulepackage",
-      "completionneutralrulepackage" ],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage" ],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -1035,11 +1123,13 @@
       "documentationpackage",
       "blockingpackage",
       "casetaskcasereferencepackage",
+      "fallbacktodefaulttenantpackage",
       "asyncpackage",
       "requiredrulepackage",
       "repetitionrulepackage",
       "manualactivationrulepackage",
-      "completionneutralrulepackage"],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage"],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -1056,13 +1146,15 @@
       "documentationpackage",
       "blockingpackage",
       "processtaskprocessreferencepackage",
+      "fallbacktodefaulttenantpackage",
       "processtaskinparameterspackage",
       "processtaskoutparameterspackage",
       "asyncpackage",
       "requiredrulepackage",
       "repetitionrulepackage",
       "manualactivationrulepackage",
-      "completionneutralrulepackage"],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage"],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -1079,7 +1171,8 @@
       "documentationpackage",
       "timerexpressionpackage",
       "timerstarttriggerpackage",
-      "completionneutralrulepackage"],
+      "completionneutralrulepackage",
+      "planitemlifecyclelistenerspackage"],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -1094,7 +1187,8 @@
         "overrideidpackage",
         "namepackage",
         "documentationpackage",
-        "completionneutralrulepackage"],
+        "completionneutralrulepackage",
+        "planitemlifecyclelistenerspackage"],
       "hiddenPropertyPackages" : [ ],
       "roles" : [ "Activity", "association_start", "association_end", "ActivitiesMorph", "all" ]
   }, {
@@ -1109,7 +1203,8 @@
       "overrideidpackage",
       "namepackage",
       "documentationpackage",
-      "ifpartconditionpackage" ],
+      "ifpartconditionpackage",
+      "triggermodepackage"],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "association_start", "association_end", "SentriesMorph", "EntryCriterionOnItemBoundary" ]
   }, {
@@ -1124,7 +1219,8 @@
       "overrideidpackage",
       "namepackage",
       "documentationpackage",
-      "ifpartconditionpackage" ],
+      "ifpartconditionpackage",
+      "triggermodepackage"],
     "hiddenPropertyPackages" : [ ],
     "roles" : [ "association_start", "SentriesMorph", "ExitCriterionOnItemBoundary" ]
   }, {

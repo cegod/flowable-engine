@@ -55,8 +55,25 @@ public interface CaseInstanceBuilder {
      */
     CaseInstanceBuilder callbackId(String callbackId);
 
+    /**
+     * Set parent case instanceId of the newly create case instance
+     *
+     * @param parentCaseInstanceId parent case instance identifier
+     * @return modified case instance builder which creates case instance with the reference to parent
+     */
+    CaseInstanceBuilder parentId(String parentCaseInstanceId);
+
+    /**
+     * If case definition is not found by key in the specified tenant use default tenant search as a fall back
+     *
+     * @return modified case instance builder
+     */
+    CaseInstanceBuilder fallbackToDefaultTenant();
+
     CaseInstance start();
-    
+
+    CaseInstance startAsync();
+
     CaseInstance startWithForm();
 
     String getCaseDefinitionId();
@@ -78,4 +95,9 @@ public interface CaseInstanceBuilder {
     String getCallbackType();
 
     String getCallbackId();
+
+    String getParentId();
+
+    boolean isFallbackToDefaultTenant();
+
 }
